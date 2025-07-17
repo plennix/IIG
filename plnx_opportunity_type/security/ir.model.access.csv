@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_general_type,general.type.group_user,model_general_type,base.group_user,1,1,1,1
+access_crm_lead_line,crm.lead.line.group_user,model_crm_lead_line,base.group_user,1,1,1,1

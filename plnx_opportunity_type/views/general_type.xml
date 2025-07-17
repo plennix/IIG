@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_general_type_form" model="ir.ui.view">
+            <field name="name">general.type.form.view</field>
+            <field name="model">general.type</field>
+            <field name="arch" type="xml">
+                <form string="General Type">
+                    <sheet>
+                        <field name="name"/>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_general_type_tree" model="ir.ui.view">
+            <field name="name">general.type.tree.view</field>
+            <field name="model">general.type</field>
+            <field name="arch" type="xml">
+                <tree string="General Type">
+                    <field name="name"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_general_type" model="ir.actions.act_window">
+            <field name="name">General Type</field>
+            <field name="res_model">general.type</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_general_type_tree"/>
+        </record>
+
+        <menuitem id="menu_general" name="General Type" parent="crm.crm_menu_config"  action="action_general_type"/>
+    </data>
+</odoo>
