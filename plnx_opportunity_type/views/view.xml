@@ -1,72 +1,81 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo>
     <data>
-    
+
         <record id="crm_lead_view_form_inherit_add_op_fields" model="ir.ui.view">
             <field name="name">crm.lead.view.form.inherit</field>
             <field name="model">crm.lead</field>
             <field name="inherit_id" ref="crm.crm_lead_view_form"/>
             <field name="arch" type="xml">
                 <xpath expr="//group//group//div[hasclass('o_lead_opportunity_form_inline_fields')]" position="after">
-                    <field name="is_proposal_stage" />
-                    <field name="op_type" required="type == 'opportunity'" />
-                    <field name="med_sub_type" invisible="op_type != 'medical'" required="op_type == 'medical'" />
-                    <field name="mot_sub_type" invisible="op_type != 'motors'" required="op_type == 'motors'" />
-                    <field name="genernal_id" invisible="op_type != 'general'" required="op_type == 'general'" />
+                    <field name="is_proposal_stage"/>
+                    <field name="op_type" required="type == 'opportunity'"/>
+                    <field name="med_sub_type" invisible="op_type != 'medical'" required="op_type == 'medical'"/>
+                    <field name="mot_sub_type" invisible="op_type != 'motors'" required="op_type == 'motors'"/>
+                    <field name="genernal_id" invisible="op_type != 'general'" required="op_type == 'general'"/>
                 </xpath>
                 <xpath expr="//page[@name='lead']" position="after">
                     <page name="required_documents" string="Required Documents" invisible="type != 'opportunity'">
                         <group>
                             <group invisible="op_type != 'medical'">
-                                <field name="med_id" invisible="med_sub_type != 'individuals'" />
-                                <field name="proposal_form" invisible="med_sub_type != 'individuals'" />
+                                <field name="med_id" invisible="med_sub_type != 'individuals'"/>
+                                <field name="proposal_form" invisible="med_sub_type != 'individuals'"/>
                             </group>
                             <group invisible="op_type != 'medical'">
-                                <field name="sme_tax_attach" invisible="med_sub_type != 'sme'" />
-                                <field name="sme_cr_attach" invisible="med_sub_type != 'sme'" />
-                                <field name="sme_membership_attach" invisible="med_sub_type != 'sme'" />
-                                <field name="sme_bor_attach" invisible="med_sub_type != 'sme'" />
+                                <field name="sme_tax_attach" invisible="med_sub_type != 'sme'"/>
+                                <field name="sme_cr_attach" invisible="med_sub_type != 'sme'"/>
+                                <field name="sme_membership_attach" invisible="med_sub_type != 'sme'"/>
+                                <field name="sme_bor_attach" invisible="med_sub_type != 'sme'"/>
                             </group>
                             <group invisible="op_type != 'medical'">
-                                <field name="tax_attach" invisible="med_sub_type != 'groups'" />
-                                <field name="cr_attach" invisible="med_sub_type != 'groups'" />
-                                <field name="membership_attach" invisible="med_sub_type != 'groups'" />
-                                <field name="bor_attach" invisible="med_sub_type != 'groups'" />
-                                <field name="others_attach" invisible="med_sub_type != 'groups'" />
+                                <field name="tax_attach" invisible="med_sub_type != 'groups'"/>
+                                <field name="cr_attach" invisible="med_sub_type != 'groups'"/>
+                                <field name="membership_attach" invisible="med_sub_type != 'groups'"/>
+                                <field name="bor_attach" invisible="med_sub_type != 'groups'"/>
+                                <field name="others_attach" invisible="1"/>
                             </group>
                             <group invisible="op_type != 'motors'">
-                                <field name="ind_type" invisible="mot_sub_type != 'individuals'" />
-                                <field name="ind_value" invisible="mot_sub_type != 'individuals'" />
-                                <field name="ind_rate" widget="percentage" invisible="mot_sub_type != 'individuals'" />
-                                <field name="ind_premium" invisible="mot_sub_type != 'individuals'" />
-                                <field name="commission_rate" widget="percentage" invisible="mot_sub_type != 'individuals'" />
-                                <field name="premium_rate" widget="percentage" invisible="mot_sub_type != 'individuals'" />
-                                <field name="multiple_attachments" invisible="mot_sub_type != 'individuals'" widget="many2many_binary"/>
+                                <field name="ind_type" invisible="mot_sub_type != 'individuals'"/>
+                                <field name="ind_value" invisible="mot_sub_type != 'individuals'"/>
+                                <field name="ind_rate" widget="percentage" invisible="mot_sub_type != 'individuals'"/>
+                                <field name="ind_premium" invisible="mot_sub_type != 'individuals'"/>
+                                <field name="commission_rate" widget="percentage"
+                                       invisible="mot_sub_type != 'individuals'"/>
+                                <field name="premium_rate" widget="percentage"
+                                       invisible="mot_sub_type != 'individuals'"/>
+<!--                                                                <field name="multiple_attachments" invisible="mot_sub_type != 'individuals'" widget="many2many_binary"/>-->
+                            </group>
+                            <group>
+                                <field name="multiple_attachments" string="Others Attachment"
+                                       widget="many2many_binary"/>
+
                             </group>
                             <group invisible="op_type != 'motors'">
-                                <field name="group_multiple_attachments" invisible="mot_sub_type != 'groups'" widget="many2many_binary"/>
+                                <field name="group_multiple_attachments" invisible="mot_sub_type != 'groups'"
+                                       widget="many2many_binary"/>
                             </group>
                         </group>
                     </page>
-                    <page name="operation" string="Operation" groups="plnx_opportunity_type.group_crm_operation" invisible="is_proposal_stage != True">
-                        <field name="crm_line_ids" >
-                            <tree string="Operation" >
-                                <field name="partner_id" />
-                                <field name="sending_date" />
-                                <field name="receiving_date" />
-                                <field name="proposal_attach" />
-                                <field name="quotation_attach" />
-                                <field name="last_update" />
-                                <field name="choosing_one" />
-                                <field name="crm_id" invisible="1" />
+                    <page name="operation" string="Operation" groups="plnx_opportunity_type.group_crm_operation"
+                          invisible="is_proposal_stage != True">
+                        <field name="crm_line_ids">
+                            <tree string="Operation">
+                                <field name="partner_id"/>
+                                <field name="sending_date"/>
+                                <field name="receiving_date"/>
+                                <field name="proposal_attach"/>
+                                <field name="quotation_attach"/>
+                                <field name="last_update"/>
+                                <field name="choosing_one"/>
+                                <field name="crm_id" invisible="1"/>
                             </tree>
                         </field>
                     </page>
                 </xpath>
-                
+
             </field>
         </record>
-    
+
     </data>
-    
+
 </odoo>

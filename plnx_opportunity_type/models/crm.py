@@ -42,6 +42,15 @@ class CRM(models.Model):
     ind_premium = fields.Float(string="Premium", compute='_compute_premium')
     commission_rate = fields.Float(string="Commisiion Rate")
     premium_rate = fields.Float(string="Premium Rate")
+
+    contact_type = fields.Selection([
+        ('b2b', 'B2B'),
+        ('b2c', 'B2C'),
+    ], string="Contact Type")
+
+    tax_id = fields.Char(string='Tax ID')
+    national_id = fields.Char(string='National ID')
+
     multiple_attachments = fields.One2many(
         'ir.attachment',
         'crm_id',
