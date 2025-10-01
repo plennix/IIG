@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from odoo.exceptions import ValidationError
 
 class CRM(models.Model):
     _inherit = 'crm.lead'
@@ -58,7 +59,6 @@ class CRM(models.Model):
         domain=[('res_model', '=', 'crm.lead')],
         help="Attach multiple files related to this CRM Lead"
     )
-
     group_multiple_attachments = fields.One2many(
         'ir.attachment',
         'crm_group_id',
@@ -66,11 +66,10 @@ class CRM(models.Model):
         domain=[('res_model', '=', 'crm.lead')],
         help="Attach multiple files related to this CRM Lead"
     )
-
     is_proposal_stage = fields.Boolean(related='stage_id.is_proposal')
-
-    
     crm_line_ids = fields.One2many('crm.lead.line','crm_id' ,string='Operation', copy=True)
+    expected_revenue = fields.Monetary('Expected Primary', currency_field='company_currency', tracking=True)
+
 
     
 
@@ -79,6 +78,20 @@ class CRM(models.Model):
         self.ind_premium = 0.0
         for rec in self:
             rec.ind_premium = rec.ind_value * rec.ind_rate
+
+    @api.constrains('stage_id', 'contact_type')
+    def _check_contact_type_after_qualified_stage(self):
+        for rec in self:
+            if not rec.stage_id:
+                continue
+
+            qualified_stages = self.env['crm.stage'].search([('is_qualified', '=', True)])
+            if not qualified_stages:
+                continue
+
+            max_qualified_sequence = max(qualified_stages.mapped('sequence'))
+            if rec.stage_id.sequence > max_qualified_sequence and not rec.contact_type:
+                raise ValidationError("Please select a Contact Type after qualified stage.")
 
 
 class CRMLeadLine(models.Model):

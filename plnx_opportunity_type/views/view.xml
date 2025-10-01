@@ -10,6 +10,9 @@
                 <xpath expr="//group//group//div[hasclass('o_lead_opportunity_form_inline_fields')]" position="after">
                     <field name="is_proposal_stage"/>
                     <field name="op_type" required="type == 'opportunity'"/>
+                    <field name="contact_type"/>
+                    <field name="tax_id" invisible="contact_type != 'b2b'"/>
+                    <field name="national_id" invisible="contact_type != 'b2c'"/>
                     <field name="med_sub_type" invisible="op_type != 'medical'" required="op_type == 'medical'"/>
                     <field name="mot_sub_type" invisible="op_type != 'motors'" required="op_type == 'motors'"/>
                     <field name="genernal_id" invisible="op_type != 'general'" required="op_type == 'general'"/>
