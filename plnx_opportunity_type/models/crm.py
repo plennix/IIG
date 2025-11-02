@@ -1,4 +1,4 @@
-from odoo import models, fields, api
+from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 
 class CRM(models.Model):
@@ -45,8 +45,8 @@ class CRM(models.Model):
     premium_rate = fields.Float(string="Premium Rate")
 
     contact_type = fields.Selection([
-        ('b2b', 'B2B'),
-        ('b2c', 'B2C'),
+        ('b2b', 'Corporate'),
+        ('b2c', 'Individual'),
     ], string="Contact Type")
 
     tax_id = fields.Char(string='Tax ID')
@@ -67,10 +67,31 @@ class CRM(models.Model):
         help="Attach multiple files related to this CRM Lead"
     )
     is_proposal_stage = fields.Boolean(related='stage_id.is_proposal')
+    is_contact_type_stage = fields.Boolean(related='stage_id.is_contact_type_stage')
     crm_line_ids = fields.One2many('crm.lead.line','crm_id' ,string='Operation', copy=True)
     expected_revenue = fields.Monetary('Expected Primary', currency_field='company_currency', tracking=True)
 
-
+    @api.constrains('tax_id', 'national_id')
+    def _check_unique_tax_national_id(self):
+        for rec in self:
+            if rec.tax_id:
+                exists = self.search([
+                    ('tax_id', 'ilike', rec.tax_id),
+                    ('id', '!=', rec.id)
+                ], limit=1)
+                if exists:
+                    raise ValidationError(
+                        _('The Tax ID must be unique!')
+                    )
+            if rec.national_id:
+                same_national = self.search([
+                    ('national_id', 'ilike', rec.national_id),
+                    ('id', '!=', rec.id)
+                ], limit=1)
+                if same_national:
+                    raise ValidationError(
+                        _('The National ID must be unique!')
+                    )
     
 
     @api.depends('ind_value','ind_rate')
@@ -105,4 +126,11 @@ class CRMLeadLine(models.Model):
     last_update = fields.Char(string='Last Update')
     choosing_one = fields.Boolean(string="Choosing One")
     crm_id = fields.Many2one('crm.lead', string="Lead", store=True)
-    
+    type = fields.Selection([
+        ('quotation','Quotation'),
+        ('addition','Addition'),
+        ('delation','Delation'),
+    ], string="Type")
+    quantity = fields.Integer(string="Quantity")
+    total_premium = fields.Float(string="Total Premium")
+

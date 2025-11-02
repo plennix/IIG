@@ -7,10 +7,14 @@
             <field name="model">crm.lead</field>
             <field name="inherit_id" ref="crm.crm_lead_view_form"/>
             <field name="arch" type="xml">
+                <xpath expr="//div//h2//div//label[@for='expected_revenue']" position="attributes">
+                    <attribute name="string">Expected Premium</attribute>
+                </xpath>
                 <xpath expr="//group//group//div[hasclass('o_lead_opportunity_form_inline_fields')]" position="after">
-                    <field name="is_proposal_stage"/>
+                    <field name="is_proposal_stage" invisible="1" />
+                    <field name="is_contact_type_stage" invisible="1" />
                     <field name="op_type" required="type == 'opportunity'"/>
-                    <field name="contact_type"/>
+                    <field name="contact_type" invisible="is_contact_type_stage == False" />
                     <field name="tax_id" invisible="contact_type != 'b2b'"/>
                     <field name="national_id" invisible="contact_type != 'b2c'"/>
                     <field name="med_sub_type" invisible="op_type != 'medical'" required="op_type == 'medical'"/>
@@ -64,13 +68,16 @@
                         <field name="crm_line_ids">
                             <tree string="Operation">
                                 <field name="partner_id"/>
+                                <field name="type"/>
                                 <field name="sending_date"/>
                                 <field name="receiving_date"/>
                                 <field name="proposal_attach"/>
                                 <field name="quotation_attach"/>
                                 <field name="last_update"/>
                                 <field name="choosing_one"/>
-                                <field name="crm_id" invisible="1"/>
+                                <field name="quantity"/>
+                                <field name="total_premium"/>
+                                <field name="crm_id" column_invisible="1"/>
                             </tree>
                         </field>
                     </page>

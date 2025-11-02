@@ -5,3 +5,4 @@ class CrmStage(models.Model):
 
     is_proposal = fields.Boolean(default=False)
     is_qualified = fields.Boolean(default=False)
+    is_contact_type_stage = fields.Boolean(default=False)

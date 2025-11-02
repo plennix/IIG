@@ -10,6 +10,7 @@
                 <xpath expr="//group//field[@name='is_won']" position="after">
                     <field name="is_proposal"/>
                     <field name="is_qualified"/>
+                    <field name="is_contact_type_stage"/>
                 </xpath>
             </field>
         </record>
