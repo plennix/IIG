@@ -75,7 +75,8 @@
                                 <field name="quotation_attach"/>
                                 <field name="last_update"/>
                                 <field name="choosing_one"/>
-                                <field name="quantity"/>
+                                <field name="quantity" column_invisible="1"/>
+                                <field name="product_uom_qty"/>
                                 <field name="percentage" widget="percentage"/>
                                 <field name="total_premium"/>
                                 <field name="crm_id" column_invisible="1"/>
@@ -91,7 +92,8 @@
                                         <field name="quotation_attach"/>
                                         <field name="last_update"/>
                                         <field name="choosing_one"/>
-                                        <field name="quantity"/>
+                                        <field name="quantity" invisible="1"/>
+                                        <field name="product_uom_qty"/>
                                         <field name="percentage" widget="percentage"/>
                                         <field name="total_premium"/>
                                         <field name="crm_id" invisible="1"/>

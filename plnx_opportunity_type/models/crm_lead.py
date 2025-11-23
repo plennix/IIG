@@ -158,6 +158,7 @@ class CRMLeadLine(models.Model):
         ('delation','Delation'),
     ], string="Type")
     quantity = fields.Integer(string="Quantity", compute='_compute_quantity')
+    product_uom_qty = fields.Integer(string="Quantity")
     percentage = fields.Float(string="Percentage")
     total_premium = fields.Float(string="Total Premium")
 
