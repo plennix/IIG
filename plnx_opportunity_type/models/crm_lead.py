@@ -1,7 +1,7 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 
-class CRM(models.Model):
+class CrmLead(models.Model):
     _inherit = 'crm.lead'
 
     op_type = fields.Selection([
@@ -113,6 +113,31 @@ class CRM(models.Model):
             max_qualified_sequence = max(qualified_stages.mapped('sequence'))
             if rec.stage_id.sequence > max_qualified_sequence and not rec.contact_type:
                 raise ValidationError("Please select a Contact Type after qualified stage.")
+            
+    def action_new_quotation(self):
+        action = super(CrmLead, self).action_new_quotation()
+
+        # Always initialize the context if not present
+        if not action.get('context'):
+            action['context'] = {}
+
+        if self.crm_line_ids:
+            product = self.env['product.template'].search([('percentage_field', '=', True)], limit=1)
+            if product:
+                order_lines = []
+                for line in self.crm_line_ids:
+                    # Do NOT include non-existent keys like 'force_price' in values!
+                    unit_price = line.total_premium * line.percentage
+                    order_lines.append(
+                        (0, 0, {
+                            'product_id': product.id,
+                            'product_uom_qty': 1,
+                            'price_unit': unit_price,
+                        })
+                    )
+                # Overwrite default_order_line to ensure our price_unit is used
+                action['context'].update({'default_order_line': order_lines, 'disable_product_autofill': True})
+        return action
 
 
 class CRMLeadLine(models.Model):
@@ -132,5 +157,6 @@ class CRMLeadLine(models.Model):
         ('delation','Delation'),
     ], string="Type")
     quantity = fields.Integer(string="Quantity")
+    percentage = fields.Float(string="Percentage")
     total_premium = fields.Float(string="Total Premium")
 

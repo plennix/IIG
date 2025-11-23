@@ -65,7 +65,7 @@
                     </page>
                     <page name="operation" string="Operation" groups="plnx_opportunity_type.group_crm_operation"
                           invisible="is_proposal_stage != True">
-                        <field name="crm_line_ids">
+                        <field name="crm_line_ids" editable="bottom">
                             <tree string="Operation">
                                 <field name="partner_id"/>
                                 <field name="type"/>
@@ -76,9 +76,28 @@
                                 <field name="last_update"/>
                                 <field name="choosing_one"/>
                                 <field name="quantity"/>
+                                <field name="percentage" widget="percentage"/>
                                 <field name="total_premium"/>
                                 <field name="crm_id" column_invisible="1"/>
                             </tree>
+                            <form string="Operation Line">
+                                <sheet>
+                                    <group>
+                                        <field name="partner_id"/>
+                                        <field name="type"/>
+                                        <field name="sending_date"/>
+                                        <field name="receiving_date"/>
+                                        <field name="proposal_attach"/>
+                                        <field name="quotation_attach"/>
+                                        <field name="last_update"/>
+                                        <field name="choosing_one"/>
+                                        <field name="quantity"/>
+                                        <field name="percentage" widget="percentage"/>
+                                        <field name="total_premium"/>
+                                        <field name="crm_id" invisible="1"/>
+                                    </group>
+                                </sheet>
+                            </form>
                         </field>
                     </page>
                 </xpath>

@@ -8,12 +8,13 @@
     'license': 'LGPL-3',
     'category': 'Uncategorized',
     'depends': [
-        'crm'
+        'crm', 'sale', 'product', 'sale_crm'
     ],
     'data': [
         'security/ir.model.access.csv',
         'security/security.xml',
         'views/general_type.xml',
+        'views/product_template_views.xml',
         'views/crm_stage.xml',
         'views/view.xml',
     ]
