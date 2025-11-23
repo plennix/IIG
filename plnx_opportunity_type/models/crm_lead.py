@@ -127,11 +127,11 @@ class CrmLead(models.Model):
                 order_lines = []
                 for line in self.crm_line_ids:
                     # Do NOT include non-existent keys like 'force_price' in values!
-                    unit_price = line.total_premium * line.percentage
+                    unit_price = (line.total_premium * line.percentage) / line.quantity
                     order_lines.append(
                         (0, 0, {
                             'product_id': product.id,
-                            'product_uom_qty': 1,
+                            'product_uom_qty': line.quantity,
                             'price_unit': unit_price,
                         })
                     )
@@ -157,7 +157,11 @@ class CRMLeadLine(models.Model):
         ('addition','Addition'),
         ('delation','Delation'),
     ], string="Type")
-    quantity = fields.Integer(string="Quantity")
+    quantity = fields.Integer(string="Quantity", compute='_compute_quantity')
     percentage = fields.Float(string="Percentage")
     total_premium = fields.Float(string="Total Premium")
 
+    @api.depends('crm_id.recurring_plan')
+    def _compute_quantity(self):
+        for rec in self:
+            rec.quantity = rec.crm_id.recurring_plan.number_of_months if rec.crm_id.recurring_plan else 1
