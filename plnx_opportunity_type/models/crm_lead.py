@@ -137,6 +137,7 @@ class CrmLead(models.Model):
                     )
                 # Overwrite default_order_line to ensure our price_unit is used
                 action['context'].update({'default_order_line': order_lines, 'disable_product_autofill': True})
+            action['context'].update({'default_partner_id': self.crm_line_ids[0].partner_id.id})
         return action
 
 
