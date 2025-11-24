@@ -4,3 +4,4 @@ access_crm_lead_line,crm.lead.line.group_user,model_crm_lead_line,base.group_use
 access_crm_commission_line,crm.commission.line.group_user,model_crm_commission_line,base.group_user,1,1,1,1
 access_sale_commission_line,sale.commission.line.group_user,model_sale_commission_line,base.group_user,1,1,1,1
 access_account_commission_line,account.commission.line.group_user,model_account_commission_line,base.group_user,1,1,1,1
+access_crm_target,crm.target.group_user,model_crm_target,base.group_user,1,1,1,0

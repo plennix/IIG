@@ -19,6 +19,7 @@
         'views/account_move.xml',
         'views/sale_order.xml',
         'views/res_partner.xml',
+        'views/target_views.xml',
         'views/view.xml',
     ]
 }

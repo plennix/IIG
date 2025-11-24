@@ -170,11 +170,35 @@ class CRMLeadLine(models.Model):
     product_uom_qty = fields.Integer(string="Quantity")
     percentage = fields.Float(string="Percentage")
     total_premium = fields.Float(string="Total Premium")
+    target_id = fields.Many2one('crm.target', string="Target", readonly=True)
 
     @api.depends('crm_id.recurring_plan')
     def _compute_quantity(self):
         for rec in self:
             rec.quantity = rec.crm_id.recurring_plan.number_of_months if rec.crm_id.recurring_plan else 1
+
+
+    def write(self, vals):
+        res = super().write(vals)
+        if 'choosing_one' in vals and vals['choosing_one'] == True:
+            self._create_target_record()
+        return res
+
+    def _create_target_record(self):
+        target_model = self.env['crm.target']
+        for line in self:
+            if not line.choosing_one or line.target_id:
+                continue
+            user = line.crm_id.user_id or self.env.user
+            date_value = line.sending_date or fields.Date.context_today(line)
+            target = target_model.create({
+                'user_id': user.id,
+                'date': date_value,
+                'partner_id': line.partner_id.id,
+                'total_premium': line.total_premium,
+                'lead_line_id': line.id,
+            })
+            line.target_id = target.id
 
 
 class CrmCommissionLine(models.Model):

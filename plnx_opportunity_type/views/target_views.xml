@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <data>
+
+        <record id="view_crm_target_tree" model="ir.ui.view">
+            <field name="name">crm.target.tree</field>
+            <field name="model">crm.target</field>
+            <field name="arch" type="xml">
+                <tree string="Targets" create="0" edit="0" delete="0">
+                    <field name="date"/>
+                    <field name="user_id"/>
+                    <field name="partner_id"/>
+                    <field name="total_premium"/>
+                    <field name="lead_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_crm_target" model="ir.actions.act_window">
+            <field name="name">Targets</field>
+            <field name="res_model">crm.target</field>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="plnx_opportunity_type.view_crm_target_tree"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Targets are created automatically when you mark a line as chosen.
+                </p>
+            </field>
+        </record>
+
+        <menuitem id="crm_menu_target"
+                  name="Targets"
+                  parent="crm.crm_menu_config"
+                  action="plnx_opportunity_type.action_crm_target"
+                  sequence="35"/>
+
+    </data>
+</odoo>
+
