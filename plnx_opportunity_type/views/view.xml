@@ -102,6 +102,25 @@
                             </form>
                         </field>
                     </page>
+                    <page name="    " string="Commission" groups="plnx_opportunity_type.group_crm_operation"
+                          invisible="is_proposal_stage != True">
+                        <field name="commission_line_ids" editable="bottom">
+                            <tree string="Commission">
+                                <field name="partner_id"/>
+                                <field name="rate" widget="percentage"/>
+                                <field name="crm_id" column_invisible="1"/>
+                            </tree>
+                            <form string="Commission Line">
+                                <sheet>
+                                    <group>
+                                        <field name="partner_id"/>
+                                        <field name="rate" widget="percentage"/>
+                                        <field name="crm_id" invisible="1"/>
+                                    </group>
+                                </sheet>
+                            </form>
+                        </field>
+                    </page>
                 </xpath>
 
             </field>

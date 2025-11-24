@@ -8,7 +8,7 @@
     'license': 'LGPL-3',
     'category': 'Uncategorized',
     'depends': [
-        'crm', 'sale', 'product', 'sale_crm'
+        'base', 'crm', 'sale', 'product', 'sale_crm', 'account'
     ],
     'data': [
         'security/ir.model.access.csv',
@@ -16,6 +16,9 @@
         'views/general_type.xml',
         'views/product_template_views.xml',
         'views/crm_stage.xml',
+        'views/account_move.xml',
+        'views/sale_order.xml',
+        'views/res_partner.xml',
         'views/view.xml',
     ]
 }

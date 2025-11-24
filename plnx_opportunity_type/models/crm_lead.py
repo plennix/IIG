@@ -69,6 +69,7 @@ class CrmLead(models.Model):
     is_proposal_stage = fields.Boolean(related='stage_id.is_proposal')
     is_contact_type_stage = fields.Boolean(related='stage_id.is_contact_type_stage')
     crm_line_ids = fields.One2many('crm.lead.line','crm_id' ,string='Operation', copy=True)
+    commission_line_ids = fields.One2many('crm.commission.line','crm_id' ,string='Commission', copy=True)
     expected_revenue = fields.Monetary('Expected Primary', currency_field='company_currency', tracking=True)
 
     @api.constrains('tax_id', 'national_id')
@@ -125,6 +126,7 @@ class CrmLead(models.Model):
             product = self.env['product.template'].search([('percentage_field', '=', True)], limit=1)
             if product:
                 order_lines = []
+                commission_lines = []
                 for line in self.crm_line_ids:
                     # Do NOT include non-existent keys like 'force_price' in values!
                     unit_price = (line.total_premium * line.percentage) / line.quantity
@@ -135,8 +137,15 @@ class CrmLead(models.Model):
                             'price_unit': unit_price,
                         })
                     )
+                for line in self.commission_line_ids:
+                    commission_lines.append(
+                        (0, 0, {
+                            'partner_id': line.partner_id.id,
+                            'rate': line.rate,
+                        })
+                    )
                 # Overwrite default_order_line to ensure our price_unit is used
-                action['context'].update({'default_order_line': order_lines, 'disable_product_autofill': True})
+                action['context'].update({'default_order_line': order_lines, 'disable_product_autofill': True, 'default_commission_line_ids': commission_lines})
             action['context'].update({'default_partner_id': self.crm_line_ids[0].partner_id.id})
         return action
 
@@ -166,3 +175,11 @@ class CRMLeadLine(models.Model):
     def _compute_quantity(self):
         for rec in self:
             rec.quantity = rec.crm_id.recurring_plan.number_of_months if rec.crm_id.recurring_plan else 1
+
+
+class CrmCommissionLine(models.Model):
+    _name = 'crm.commission.line'
+
+    partner_id = fields.Many2one('res.partner', string="Partner")
+    rate = fields.Float(string="Rate")
+    crm_id = fields.Many2one('crm.lead', string="Lead", store=True)

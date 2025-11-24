@@ -1,3 +1,6 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_general_type,general.type.group_user,model_general_type,base.group_user,1,1,1,1
 access_crm_lead_line,crm.lead.line.group_user,model_crm_lead_line,base.group_user,1,1,1,1
+access_crm_commission_line,crm.commission.line.group_user,model_crm_commission_line,base.group_user,1,1,1,1
+access_sale_commission_line,sale.commission.line.group_user,model_sale_commission_line,base.group_user,1,1,1,1
+access_account_commission_line,account.commission.line.group_user,model_account_commission_line,base.group_user,1,1,1,1

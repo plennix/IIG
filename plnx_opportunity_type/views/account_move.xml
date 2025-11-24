@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <data>
+    
+        <record id="view_move_form_inherit_add_commission" model="ir.ui.view">
+            <field name="name">account.move.view.form.inherit</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@name='invoice_tab']" position="after">
+                    <page name="commission" string="Commission">
+                        <field name="commission_line_ids" readonly="1">
+                            <tree string="Commission">
+                                <field name="partner_id"/>
+                                <field name="rate" widget="percentage"/>
+                                <field name="amount"/>
+                                <field name="move_id" column_invisible="1"/>
+                            </tree>
+                            <form string="Commission Line">
+                                <sheet>
+                                    <group>
+                                        <field name="partner_id"/>
+                                        <field name="rate" widget="percentage"/>
+                                        <field name="amount"/>
+                                        <field name="move_id" invisible="1"/>
+                                    </group>
+                                </sheet>
+                            </form>
+                        </field>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+    
+    </data>
+    
+</odoo>

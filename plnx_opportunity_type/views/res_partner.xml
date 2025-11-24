@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <data>
+        <record id="view_account_commission_line_tree_partner" model="ir.ui.view">
+            <field name="name">account.commission.line.tree.partner</field>
+            <field name="model">account.commission.line</field>
+            <field name="arch" type="xml">
+                <tree string="Commission Lines" create="0" edit="0">
+                    <field name="move_id"/>
+                    <field name="rate"/>
+                    <field name="amount" sum="Total Amount"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_partner_commission_lines" model="ir.actions.act_window">
+            <field name="name">Commission Lines</field>
+            <field name="res_model">account.commission.line</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="plnx_opportunity_type.view_account_commission_line_tree_partner"/>
+            <field name="domain">[('partner_id', '=', active_id), ('move_id', '!=', False)]</field>
+            <field name="context">{'default_partner_id': active_id}</field>
+        </record>
+    
+        <record id="view_partner_form_inherit_add_commission" model="ir.ui.view">
+            <field name="name">res.partner.view.form.inherit</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//group//group[2]" position="inside">
+                    <field name="total_commission" readonly="1"/>
+                </xpath>
+                <div name="button_box" position="inside">
+                    <button type="action"
+                            name="%(plnx_opportunity_type.action_partner_commission_lines)d"
+                            class="oe_stat_button"
+                            icon="fa-money"
+                            invisible="total_commission == 0.0">
+                        <field name="total_commission" widget="statinfo" string="Commissions"/>
+                    </button>
+                </div>
+            </field>
+        </record>
+
+    
+    </data>
+    
+</odoo>
