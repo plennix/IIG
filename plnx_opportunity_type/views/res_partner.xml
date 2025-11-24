@@ -7,7 +7,7 @@
             <field name="arch" type="xml">
                 <tree string="Commission Lines" create="0" edit="0">
                     <field name="move_id"/>
-                    <field name="rate"/>
+                    <field name="rate" widget="percentage"/>
                     <field name="amount" sum="Total Amount"/>
                 </tree>
             </field>
