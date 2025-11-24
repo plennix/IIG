@@ -186,8 +186,15 @@ class CRMLeadLine(models.Model):
     def write(self, vals):
         res = super().write(vals)
         if 'choosing_one' in vals:
-            self._create_target_record()
+            chosen_lines = self.filtered(lambda line: line.choosing_one)
+            chosen_lines._create_target_record()
+            unchosen_lines = self.filtered(lambda line: not line.choosing_one and line.target_id)
+            unchosen_lines._delete_target_record()
         return res
+
+    def unlink(self):
+        self._delete_target_record()
+        return super().unlink()
 
     def _create_target_record(self):
         target_model = self.env['crm.target']
@@ -204,6 +211,11 @@ class CRMLeadLine(models.Model):
                 'lead_line_id': line.id,
             })
             line.target_id = target.id
+
+    def _delete_target_record(self):
+        targets = self.mapped('target_id')
+        if targets:
+            targets.sudo().unlink()
 
 
 class CrmCommissionLine(models.Model):
