@@ -177,10 +177,15 @@ class CRMLeadLine(models.Model):
         for rec in self:
             rec.quantity = rec.crm_id.recurring_plan.number_of_months if rec.crm_id.recurring_plan else 1
 
+    @api.model
+    def create(self, vals):
+        records = super().create(vals)
+        records._create_target_record()
+        return records
 
     def write(self, vals):
         res = super().write(vals)
-        if 'choosing_one' in vals and vals['choosing_one'] == True:
+        if 'choosing_one' in vals:
             self._create_target_record()
         return res
 
