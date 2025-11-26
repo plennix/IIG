@@ -102,7 +102,7 @@
                             </form>
                         </field>
                     </page>
-                    <page name="    " string="Commission" groups="plnx_opportunity_type.group_crm_operation"
+                    <page name="commission" string="Commission" groups="plnx_opportunity_type.group_crm_operation"
                           invisible="is_proposal_stage != True">
                         <field name="commission_line_ids" editable="bottom">
                             <tree string="Commission">

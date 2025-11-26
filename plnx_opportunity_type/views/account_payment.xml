@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <data>
+    
+        <record id="view_account_payment_form_inherit_add_commission" model="ir.ui.view">
+            <field name="name">account.payment.view.form.inherit</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account.view_account_payment_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//group//group[1]//field[@name='partner_id']" position="after">
+                    <field name="destination_account_id" readonly="state != 'draft'"/>
+                    <field name="with_commission" readonly="state != 'draft'" />
+                </xpath>
+            </field>
+        </record>
+    
+    </data>
+    
+</odoo>

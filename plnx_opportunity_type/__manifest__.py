@@ -18,6 +18,7 @@
         'views/crm_stage.xml',
         'views/account_move.xml',
         'views/sale_order.xml',
+        'views/account_payment.xml',
         'views/res_partner.xml',
         'views/target_views.xml',
         'views/view.xml',

@@ -6,6 +6,7 @@
             <field name="model">account.commission.line</field>
             <field name="arch" type="xml">
                 <tree string="Commission Lines" create="0" edit="0">
+                    <field name="invoice_date" />
                     <field name="move_id"/>
                     <field name="rate" widget="percentage"/>
                     <field name="amount" sum="Total Amount"/>
@@ -19,6 +20,15 @@
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="plnx_opportunity_type.view_account_commission_line_tree_partner"/>
             <field name="domain">[('partner_id', '=', active_id), ('move_id', '!=', False)]</field>
+            <field name="context">{'default_partner_id': active_id}</field>
+        </record>
+
+        <record id="action_partner_account_payment" model="ir.actions.act_window">
+            <field name="name">Payment with Commission</field>
+            <field name="res_model">account.payment</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="account.view_account_payment_tree"/>
+            <field name="domain">[('partner_id', '=', active_id), ('with_commission', '=', True), ('payment_type', '=', 'outbound')]</field>
             <field name="context">{'default_partner_id': active_id}</field>
         </record>
     
@@ -35,8 +45,15 @@
                             name="%(plnx_opportunity_type.action_partner_commission_lines)d"
                             class="oe_stat_button"
                             icon="fa-money"
-                            invisible="total_commission == 0.0">
-                        <field name="total_commission" widget="statinfo" string="Commissions"/>
+                            invisible="commission_count == 0">
+                        <field name="commission_count" widget="statinfo" string="Commissions"/>
+                    </button>
+                    <button type="action"
+                            name="%(plnx_opportunity_type.action_partner_account_payment)d"
+                            class="oe_stat_button"
+                            icon="fa-credit-card-alt"
+                            invisible="loss_commission_count == 0">
+                        <field name="loss_commission_count" widget="statinfo" string="Payments with Commission"/>
                     </button>
                 </div>
             </field>
