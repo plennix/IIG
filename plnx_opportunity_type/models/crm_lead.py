@@ -153,7 +153,7 @@ class CrmLead(models.Model):
 class CRMLeadLine(models.Model):
     _name = 'crm.lead.line'
 
-    partner_id = fields.Many2one('res.partner', string="Company Name")
+    partner_id = fields.Many2one('res.partner', string="Insurance Company")
     sending_date = fields.Date(string='Sending Date',default=fields.Date.context_today,)
     receiving_date = fields.Date(string='Receiving Quotation Date')
     proposal_attach = fields.Binary(string="Proposal Attach")
@@ -221,6 +221,6 @@ class CRMLeadLine(models.Model):
 class CrmCommissionLine(models.Model):
     _name = 'crm.commission.line'
 
-    partner_id = fields.Many2one('res.partner', string="Partner")
+    partner_id = fields.Many2one('res.partner', string="Producer")
     rate = fields.Float(string="Rate")
     crm_id = fields.Many2one('crm.lead', string="Lead", store=True)

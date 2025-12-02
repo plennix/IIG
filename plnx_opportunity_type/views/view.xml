@@ -7,6 +7,12 @@
             <field name="model">crm.lead</field>
             <field name="inherit_id" ref="crm.crm_lead_view_form"/>
             <field name="arch" type="xml">
+                <xpath expr="//group//group[@name='lead_partner']//field[@name='partner_id']" position="attributes">
+                    <attribute name="string">Contact Person</attribute>
+                </xpath>
+                <xpath expr="//group//group[@name='opportunity_partner']//field[@name='partner_id']" position="attributes">
+                    <attribute name="string">Contact Person</attribute>
+                </xpath>
                 <xpath expr="//div//h2//div//label[@for='expected_revenue']" position="attributes">
                     <attribute name="string">Expected Premium</attribute>
                 </xpath>
@@ -77,7 +83,7 @@
                                 <field name="choosing_one"/>
                                 <field name="quantity" column_invisible="1"/>
                                 <field name="product_uom_qty"/>
-                                <field name="percentage" widget="percentage"/>
+                                <field name="percentage" widget="percentage" groups="plnx_opportunity_type.group_crm_operation_percentage"/>
                                 <field name="total_premium"/>
                                 <field name="crm_id" column_invisible="1"/>
                             </tree>
@@ -94,7 +100,7 @@
                                         <field name="choosing_one"/>
                                         <field name="quantity" invisible="1"/>
                                         <field name="product_uom_qty"/>
-                                        <field name="percentage" widget="percentage"/>
+                                        <field name="percentage" widget="percentage" groups="plnx_opportunity_type.group_crm_operation_percentage" />
                                         <field name="total_premium"/>
                                         <field name="crm_id" invisible="1"/>
                                     </group>

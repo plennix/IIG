@@ -6,10 +6,17 @@
             <field name="model">account.commission.line</field>
             <field name="arch" type="xml">
                 <tree string="Commission Lines" create="0" edit="0">
+                    <header>
+                        <button name="action_register_payment" 
+                                string="Register Payment" 
+                                type="object" 
+                                class="btn-primary"/>
+                    </header>
                     <field name="invoice_date" />
                     <field name="move_id"/>
                     <field name="rate" widget="percentage"/>
                     <field name="amount" sum="Total Amount"/>
+                    <field name="state" widget="badge"/>
                 </tree>
             </field>
         </record>
