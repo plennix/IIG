@@ -1,7 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo>
     <data>
-
         <record id="view_crm_target_tree" model="ir.ui.view">
             <field name="name">crm.target.tree</field>
             <field name="model">crm.target</field>
@@ -10,14 +9,14 @@
                     <field name="date"/>
                     <field name="user_id"/>
                     <field name="partner_id"/>
-                    <field name="total_premium" sum="Total Premium"/>
                     <field name="planned_target" sum="Planned Target"/>
-                    <field name="percentage" string="Achievement %" widget="percentage"/>
+                    <field name="total_premium" sum="Total Premium"/>
+                    <field name="percentage" string="Achievement %" widget="percentage" sum="Achievement %"/>
                     <field name="lead_id"/>
                 </tree>
             </field>
         </record>
-        
+
         <record id="crm_target_view_search" model="ir.ui.view">
             <field name="model">crm.target</field>
             <field name="arch" type="xml">
@@ -45,11 +44,9 @@
         </record>
 
         <menuitem id="crm_menu_target"
-                  name="Targets"
-                  parent="crm.crm_menu_config"
-                  action="plnx_opportunity_type.action_crm_target"
-                  sequence="35"/>
-
+            name="Targets"
+            parent="crm.crm_menu_config"
+            action="plnx_opportunity_type.action_crm_target"
+            sequence="35"/>
     </data>
 </odoo>
-

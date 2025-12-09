@@ -19,7 +19,7 @@ class CrmTarget(models.Model):
     
     total_premium = fields.Float(string='Total Premium')
     
-    # Percentage field
+    # Percentage field for individual records
     percentage = fields.Float(
         string='Achievement %',
         compute='_compute_percentage',
@@ -42,6 +42,20 @@ class CrmTarget(models.Model):
     def _compute_percentage(self):
         for record in self:
             if record.planned_target and record.planned_target > 0:
-                record.percentage = record.total_premium / record.planned_target
+                record.percentage = (record.total_premium / record.planned_target)
             else:
                 record.percentage = 0.0
+    
+    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
+        """Override read_group to compute percentage correctly at group level"""
+        res = super(CrmTarget, self).read_group(domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy)
+        
+        if 'percentage' in fields:
+            for line in res:
+                if line.get('planned_target') and line['planned_target'] > 0:
+                    # Calculate percentage from summed values
+                    line['percentage'] = (line.get('total_premium', 0) / line['planned_target'])
+                else:
+                    line['percentage'] = 0.0
+        
+        return res
