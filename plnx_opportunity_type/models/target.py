@@ -48,14 +48,18 @@ class CrmTarget(models.Model):
     
     def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
         """Override read_group to compute percentage correctly at group level"""
-        res = super(CrmTarget, self).read_group(domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy)
+        # If grouping by quarter, ensure planned_target is aggregated as max (assuming it's constant per group)
+        # to avoid summing it incorrectly
+        if 'quarter' in groupby and 'planned_target' in fields:
+            # Modify fields to specify aggregation for planned_target
+            fields = [(f, 'max') if f == 'planned_target' else f for f in fields]
         
+        res = super(CrmTarget, self).read_group(domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy)
         if 'percentage' in fields:
             for line in res:
                 if line.get('planned_target') and line['planned_target'] > 0:
-                    # Calculate percentage from summed values
+                    # Calculate percentage from summed total_premium and (now correctly aggregated) planned_target
                     line['percentage'] = (line.get('total_premium', 0) / line['planned_target'])
                 else:
                     line['percentage'] = 0.0
-        
         return res
