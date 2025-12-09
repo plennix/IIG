@@ -11,7 +11,7 @@
                     <field name="partner_id"/>
                     <field name="planned_target" sum="Planned Target"/>
                     <field name="total_premium" sum="Total Premium"/>
-                    <field name="percentage" string="Achievement %" widget="percentage" sum="Achievement %"/>
+                    <!-- <field name="percentage" string="Achievement %" widget="percentage" sum="Achievement %"/> -->
                     <field name="lead_id"/>
                 </tree>
             </field>
