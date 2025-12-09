@@ -6,6 +6,7 @@ class ResPartner(models.Model):
     total_commission = fields.Float(string='Total Commission', readonly=True, store=True)
     commission_count = fields.Integer(string='Commission Count', compute='_compute_commission_count')
     loss_commission_count = fields.Integer(string='Loss Commission Count', compute='_compute_loss_commission_count')
+    planned_target = fields.Float(string='Planned Target')
 
     def _compute_commission_count(self):
         for partner in self:

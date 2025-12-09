@@ -10,7 +10,9 @@
                     <field name="date"/>
                     <field name="user_id"/>
                     <field name="partner_id"/>
-                    <field name="total_premium"/>
+                    <field name="total_premium" sum="Total Premium"/>
+                    <field name="planned_target" sum="Planned Target"/>
+                    <field name="percentage" string="Achievement %" widget="percentage"/>
                     <field name="lead_id"/>
                 </tree>
             </field>
