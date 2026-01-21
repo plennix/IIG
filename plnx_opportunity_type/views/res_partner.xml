@@ -14,9 +14,11 @@
                     </header>
                     <field name="invoice_date" />
                     <field name="move_id"/>
-                    <field name="rate" widget="percentage"/>
-                    <field name="amount" sum="Total Amount"/>
-                    <field name="commission_percentage" sum="Total Commission" widget="percentage"/>
+                    <field name="rate" widget="percentage" column_invisible="1"/>
+                    <field name="amount" sum="Total Amount" column_invisible="1"/>
+                    <field name="amount_total" sum="Total"/>
+                    <field name="commission_percentage" widget="percentage"/>
+                    <field name="commission_amount" sum="Total Commission"/>
                     <field name="state" widget="badge"/>
                 </tree>
             </field>

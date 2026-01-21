@@ -33,7 +33,10 @@ class AccountCommissionLine(models.Model):
     state = fields.Selection([('not_paid','Not Paid'),
                               ('paid','Paid')],store=True, default='not_paid')
 
-    commission_percentage = fields.Float(string='Commission Percentage', store=True)
+    currency_id = fields.Many2one(related='move_id.currency_id', string='Currency', store=True)
+    amount_total = fields.Monetary(related='move_id.amount_total', string='Invoice Total', currency_field='currency_id', store=True)
+    commission_percentage = fields.Float(string='Commission %', store=True)
+    commission_amount = fields.Float(string='Commission Amount (Calculated)', store=True)
 
     @api.depends('rate', 'move_id.amount_total')
     def _compute_amount(self):
@@ -100,15 +103,19 @@ class AccountCommissionLine(models.Model):
         return 0.0
 
     def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
-        """Override read_group to compute commission_percentage correctly at group level based on quarter"""
+        """Override read_group to compute commission_percentage and commission_amount at group level based on quarter"""
         res = super(AccountCommissionLine, self).read_group(
             domain, fields, groupby, offset=offset, limit=limit, orderby=orderby, lazy=lazy
         )
 
-        if 'commission_percentage' in fields:
+        # Check if we need to compute commission fields
+        needs_commission = 'commission_percentage' in fields or 'commission_amount' in fields
+
+        if needs_commission:
             for line in res:
                 commission_pct = 0.0
-                total_amount = line.get('amount', 0.0)
+                commission_amt = 0.0
+                total_amount = line.get('amount_total', 0.0)
 
                 # Check if grouped by invoice_date (quarter)
                 if 'invoice_date:quarter' in groupby or 'invoice_date' in groupby:
@@ -143,11 +150,17 @@ class AccountCommissionLine(models.Model):
                                 )
                                 matrix_commission = self._get_commission_from_matrix(prev_target_percentage)
 
-                            # Calculate commission_percentage from amount
-                            if total_amount and matrix_commission:
-                                commission_pct = (total_amount * matrix_commission) / 100
+                            # commission_percentage = the commission % from matrix
+                            commission_pct = matrix_commission
 
-                line['commission_percentage'] = commission_pct
+                            # commission_amount = amount_total * commission_percentage / 100
+                            if total_amount and matrix_commission:
+                                commission_amt = (total_amount * matrix_commission) / 100
+
+                if 'commission_percentage' in fields:
+                    line['commission_percentage'] = commission_pct
+                if 'commission_amount' in fields:
+                    line['commission_amount'] = commission_amt * 100
 
         return res
 
