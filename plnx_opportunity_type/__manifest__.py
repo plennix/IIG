@@ -21,6 +21,7 @@
         'views/account_payment.xml',
         'views/res_partner.xml',
         'views/target_views.xml',
+        'views/target_matrix_views.xml',
         'views/view.xml',
     ]
 }

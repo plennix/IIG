@@ -7,17 +7,29 @@
             <field name="arch" type="xml">
                 <tree string="Commission Lines" create="0" edit="0">
                     <header>
-                        <button name="action_register_payment" 
-                                string="Register Payment" 
-                                type="object" 
+                        <button name="action_register_payment"
+                                string="Register Payment"
+                                type="object"
                                 class="btn-primary"/>
                     </header>
                     <field name="invoice_date" />
                     <field name="move_id"/>
                     <field name="rate" widget="percentage"/>
                     <field name="amount" sum="Total Amount"/>
+                    <field name="commission_percentage" sum="Total Commission" widget="percentage"/>
                     <field name="state" widget="badge"/>
                 </tree>
+            </field>
+        </record>
+
+        <record id="account_commission_line_view_search" model="ir.ui.view">
+            <field name="model">account.commission.line</field>
+            <field name="arch" type="xml">
+                <search string="Commission Lines">
+                    <group expand="0" string="Group By">
+                        <filter name="date" date="date" context="{'group_by': 'invoice_date:quarter'}" string="Date"/>
+                    </group>
+                </search>
             </field>
         </record>
 
@@ -26,8 +38,9 @@
             <field name="res_model">account.commission.line</field>
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="plnx_opportunity_type.view_account_commission_line_tree_partner"/>
+            <field name="search_view_id" ref="plnx_opportunity_type.account_commission_line_view_search"/>
             <field name="domain">[('partner_id', '=', active_id), ('move_id', '!=', False)]</field>
-            <field name="context">{'default_partner_id': active_id}</field>
+            <field name="context">{'default_partner_id': active_id, 'search_default_date': True}</field>
         </record>
 
         <record id="action_partner_account_payment" model="ir.actions.act_window">

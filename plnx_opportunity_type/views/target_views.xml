@@ -47,6 +47,6 @@
             name="Targets"
             parent="crm.crm_menu_config"
             action="plnx_opportunity_type.action_crm_target"
-            sequence="35"/>
+            sequence="30"/>
     </data>
 </odoo>

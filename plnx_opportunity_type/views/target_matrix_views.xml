@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <data>
+        <record id="view_crm_target_matrix_tree" model="ir.ui.view">
+            <field name="name">crm.target.matrix.tree</field>
+            <field name="model">crm.target.matrix</field>
+            <field name="arch" type="xml">
+                <tree string="Target Matrix" editable="bottom" create="1" edit="1" delete="1">
+                    <field name="from_percentage" widget="percentage"/>
+                    <field name="to_percentage" widget="percentage"/>
+                    <field name="commission" string="Commission %" widget="percentage" />
+                </tree>
+            </field>
+        </record>
+ 
+        <record id="action_crm_target_matrix" model="ir.actions.act_window">
+            <field name="name">Target Matrix</field>
+            <field name="res_model">crm.target.matrix</field>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="plnx_opportunity_type.view_crm_target_matrix_tree"/>
+            <field name="context">{}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Targets are created automatically when you mark a line as chosen.
+                </p>
+            </field>
+        </record>
+ 
+        <menuitem id="crm_menu_target_matrix"
+            name="Target Matrix"
+            parent="crm.crm_menu_config"
+            action="plnx_opportunity_type.action_crm_target_matrix"
+            sequence="40"/>
+    </data>
+</odoo>
