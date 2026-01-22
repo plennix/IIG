@@ -1,6 +1,9 @@
 from odoo import models, fields, api,_
 from odoo.exceptions import UserError
 from dateutil.relativedelta import relativedelta
+import logging
+
+_logger = logging.getLogger(__name__)
 
 class AccountMove(models.Model):
     _inherit = 'account.move'
@@ -57,11 +60,18 @@ class AccountCommissionLine(models.Model):
 
     def _get_target_percentage_for_quarter(self, partner_id, quarter_start, quarter_end):
         """Get the achievement percentage from crm.target for a partner in a specific quarter"""
+        _logger.info("=== Getting target percentage for quarter ===")
+        _logger.info("Quarter: %s to %s", quarter_start, quarter_end)
+        _logger.info("Partner ID: %s", partner_id)
+
         if not partner_id or not quarter_start or not quarter_end:
+            _logger.info("Missing partner_id or quarter dates, returning 0")
             return 0.0
 
         # Find the user linked to this partner
         user = self.env['res.users'].search([('partner_id', '=', partner_id)], limit=1)
+        _logger.info("Found user: %s (ID: %s)", user.name if user else 'None', user.id if user else 'None')
+
         if not user:
             return 0.0
 
@@ -72,7 +82,13 @@ class AccountCommissionLine(models.Model):
             ('date', '<=', quarter_end)
         ])
 
+        _logger.info("Found %d targets for user %s in quarter %s - %s", len(targets), user.name, quarter_start, quarter_end)
+        for t in targets:
+            _logger.info("  Target ID=%s, date=%s, total_premium=%s, planned_target=%s",
+                        t.id, t.date, t.total_premium, t.planned_target)
+
         if not targets:
+            _logger.info("No targets found for this quarter")
             return 0.0
 
         # Calculate the aggregate percentage for the quarter
@@ -80,15 +96,18 @@ class AccountCommissionLine(models.Model):
         # Get planned_target - use max to get the correct value (it should be same across records)
         planned_target = max(targets.mapped('planned_target')) if targets else 0.0
 
+        _logger.info("Total premium: %s, Planned target: %s", total_premium, planned_target)
+
         if planned_target and planned_target > 0:
-            return total_premium / planned_target
+            percentage = total_premium / planned_target
+            _logger.info("Calculated percentage: %s (%s%%)", percentage, percentage * 100)
+            return percentage
+
+        _logger.info("Planned target is 0, returning 0")
         return 0.0
 
     def _get_commission_from_matrix(self, percentage):
         """Get commission percentage from crm.target.matrix based on achievement percentage"""
-        import logging
-        _logger = logging.getLogger(__name__)
-        _logger.info(f"Finding commission for percentage: {percentage}")
         if not percentage:
             return 0.0
 
@@ -110,8 +129,6 @@ class AccountCommissionLine(models.Model):
             ('from_percentage', '<=', percentage),
             ('to_percentage', '>=', percentage)
         ], limit=1)
-        _logger.info(f"found matrix: {matrix}")
-        
 
         if matrix:
             return matrix.commission
@@ -163,22 +180,30 @@ class AccountCommissionLine(models.Model):
                     # Get the domain for this group to find the records
                     group_domain = line.get('__domain', domain)
                     records = self.search(group_domain, limit=100)  # Limit for performance
+                    _logger.info("=== Processing commission group ===")
+                    _logger.info("Group domain: %s", group_domain)
+                    _logger.info("Found %d records in group", len(records))
 
                     if records:
                         # Get partner from the first record (assuming same partner in group)
                         partner_id = records[0].partner_id.id if records[0].partner_id else False
+                        partner_name = records[0].partner_id.name if records[0].partner_id else 'None'
 
                         # Get quarter date range from the first record's invoice_date
                         first_date = records[0].invoice_date
+                        _logger.info("First record invoice_date: %s, partner: %s (ID: %s)", first_date, partner_name, partner_id)
+
                         if first_date and partner_id:
                             # Get the quarter range for this specific invoice date
                             quarter_start, quarter_end = self._get_quarter_date_range(first_date)
+                            _logger.info("Calculated quarter range: %s to %s", quarter_start, quarter_end)
 
                             # Get target percentage for THIS SPECIFIC quarter only
                             # Each quarter should use its own achievement data
                             target_percentage, matrix_commission = self._get_target_percentage_for_specific_quarter(
                                 partner_id, quarter_start, quarter_end
                             )
+                            _logger.info("Result: target_percentage=%s, matrix_commission=%s", target_percentage, matrix_commission)
 
                             # commission_percentage = the commission % from matrix
                             commission_pct = matrix_commission
