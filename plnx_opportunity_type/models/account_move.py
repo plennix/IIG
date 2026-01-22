@@ -47,6 +47,9 @@ class AccountCommissionLine(models.Model):
         """Get the start and end date of the quarter for a given date"""
         if not date:
             return None, None
+        # Handle both date and datetime objects
+        if hasattr(date, 'date'):
+            date = date.date()
         quarter = (date.month - 1) // 3
         quarter_start = date.replace(month=quarter * 3 + 1, day=1)
         quarter_end = (quarter_start + relativedelta(months=3)) - relativedelta(days=1)
@@ -54,11 +57,20 @@ class AccountCommissionLine(models.Model):
 
     def _get_previous_quarter_range(self, quarter_start, quarter_end):
         """Get the start and end date of the previous quarter"""
+        if not quarter_start:
+            return None, None
         prev_quarter_end = quarter_start - relativedelta(days=1)
-        prev_quarter_start = prev_quarter_end.replace(day=1)
-        prev_quarter_start = prev_quarter_start - relativedelta(months=2)
+        prev_quarter_start = prev_quarter_end.replace(day=1) - relativedelta(months=2)
         prev_quarter_start = prev_quarter_start.replace(day=1)
         return prev_quarter_start, prev_quarter_end
+
+    def _get_next_quarter_range(self, quarter_start, quarter_end):
+        """Get the start and end date of the next quarter"""
+        if not quarter_end:
+            return None, None
+        next_quarter_start = quarter_end + relativedelta(days=1)
+        next_quarter_end = (next_quarter_start + relativedelta(months=3)) - relativedelta(days=1)
+        return next_quarter_start, next_quarter_end
 
     def _get_target_percentage_for_quarter(self, partner_id, quarter_start, quarter_end):
         """Get the achievement percentage from crm.target for a partner in a specific quarter"""
@@ -82,7 +94,8 @@ class AccountCommissionLine(models.Model):
 
         # Calculate the aggregate percentage for the quarter
         total_premium = sum(targets.mapped('total_premium'))
-        planned_target = targets[0].planned_target if targets else 0.0
+        # Get planned_target - use max to get the correct value (it should be same across records)
+        planned_target = max(targets.mapped('planned_target')) if targets else 0.0
 
         if planned_target and planned_target > 0:
             return total_premium / planned_target
@@ -108,6 +121,50 @@ class AccountCommissionLine(models.Model):
             return matrix.commission
         return 0.0
 
+    def _find_best_target_percentage(self, partner_id, reference_date, max_quarters_back=4, max_quarters_forward=2):
+        """
+        Find the best target percentage by searching current quarter first,
+        then previous quarters, then future quarters.
+        Returns (target_percentage, commission_from_matrix)
+        """
+        if not partner_id or not reference_date:
+            return 0.0, 0.0
+
+        # Get current quarter range
+        quarter_start, quarter_end = self._get_quarter_date_range(reference_date)
+        if not quarter_start or not quarter_end:
+            return 0.0, 0.0
+
+        # Try current quarter first
+        target_percentage = self._get_target_percentage_for_quarter(partner_id, quarter_start, quarter_end)
+        matrix_commission = self._get_commission_from_matrix(target_percentage)
+        if matrix_commission:
+            return target_percentage, matrix_commission
+
+        # Try previous quarters
+        prev_start, prev_end = quarter_start, quarter_end
+        for _ in range(max_quarters_back):
+            prev_start, prev_end = self._get_previous_quarter_range(prev_start, prev_end)
+            if not prev_start or not prev_end:
+                break
+            target_percentage = self._get_target_percentage_for_quarter(partner_id, prev_start, prev_end)
+            matrix_commission = self._get_commission_from_matrix(target_percentage)
+            if matrix_commission:
+                return target_percentage, matrix_commission
+
+        # Try future quarters (in case targets are set ahead)
+        next_start, next_end = quarter_start, quarter_end
+        for _ in range(max_quarters_forward):
+            next_start, next_end = self._get_next_quarter_range(next_start, next_end)
+            if not next_start or not next_end:
+                break
+            target_percentage = self._get_target_percentage_for_quarter(partner_id, next_start, next_end)
+            matrix_commission = self._get_commission_from_matrix(target_percentage)
+            if matrix_commission:
+                return target_percentage, matrix_commission
+
+        return 0.0, 0.0
+
     def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
         """Override read_group to compute commission_percentage and commission_amount at group level based on quarter"""
         res = super(AccountCommissionLine, self).read_group(
@@ -123,11 +180,21 @@ class AccountCommissionLine(models.Model):
                 commission_amt = 0.0
                 total_amount = line.get('amount_total', 0.0)
 
-                # Check if grouped by invoice_date (quarter)
-                if 'invoice_date:quarter' in groupby or 'invoice_date' in groupby:
+                # Check if grouped by invoice_date (quarter) - handle different groupby formats
+                is_quarter_grouped = any(
+                    gb in groupby or gb.startswith('invoice_date')
+                    for gb in ['invoice_date:quarter', 'invoice_date:month', 'invoice_date:year', 'invoice_date']
+                    if gb in groupby
+                )
+
+                if not is_quarter_grouped:
+                    # Also check for any groupby containing invoice_date
+                    is_quarter_grouped = any('invoice_date' in str(gb) for gb in groupby)
+
+                if is_quarter_grouped:
                     # Get the domain for this group to find the records
                     group_domain = line.get('__domain', domain)
-                    records = self.search(group_domain)
+                    records = self.search(group_domain, limit=100)  # Limit for performance
 
                     if records:
                         # Get partner from the first record (assuming same partner in group)
@@ -136,25 +203,10 @@ class AccountCommissionLine(models.Model):
                         # Get quarter date range from the first record's invoice_date
                         first_date = records[0].invoice_date
                         if first_date and partner_id:
-                            quarter_start, quarter_end = self._get_quarter_date_range(first_date)
-
-                            # Get the target percentage for this quarter and partner
-                            target_percentage = self._get_target_percentage_for_quarter(
-                                partner_id, quarter_start, quarter_end
+                            # Use the enhanced method that searches multiple quarters
+                            target_percentage, matrix_commission = self._find_best_target_percentage(
+                                partner_id, first_date
                             )
-
-                            # Get commission percentage from matrix based on target percentage
-                            matrix_commission = self._get_commission_from_matrix(target_percentage)
-
-                            # If commission is 0, try previous quarter
-                            if not matrix_commission:
-                                prev_quarter_start, prev_quarter_end = self._get_previous_quarter_range(
-                                    quarter_start, quarter_end
-                                )
-                                prev_target_percentage = self._get_target_percentage_for_quarter(
-                                    partner_id, prev_quarter_start, prev_quarter_end
-                                )
-                                matrix_commission = self._get_commission_from_matrix(prev_target_percentage)
 
                             # commission_percentage = the commission % from matrix
                             commission_pct = matrix_commission
