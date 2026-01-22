@@ -96,15 +96,21 @@ class AccountCommissionLine(models.Model):
         if grouped_data and grouped_data[0]:
             data = grouped_data[0]
             total_premium = data.get('total_premium', 0) or 0
-            planned_target = data.get('planned_target', 0) or 0
-            # Calculate percentage the same way as crm.target read_group
+            planned_target_single = data.get('planned_target', 0) or 0
+            target_count = data.get('__count', 1) or 1
+
+            # Multiply planned_target by number of targets
+            # Each target represents a period, so total planned = planned_target * count
+            planned_target = planned_target_single * target_count
+
+            # Calculate percentage
             if planned_target and planned_target > 0:
                 percentage = total_premium / planned_target
             else:
                 percentage = 0.0
 
-            _logger.info("Total premium: %s, Planned target: %s, Percentage: %s (%s%%)",
-                        total_premium, planned_target, percentage, percentage * 100)
+            _logger.info("Total premium: %s, Planned target (single): %s, Target count: %s, Planned target (total): %s, Percentage: %s (%s%%)",
+                        total_premium, planned_target_single, target_count, planned_target, percentage, percentage * 100)
             return percentage
 
         _logger.info("No data found for this quarter")
