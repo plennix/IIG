@@ -59,7 +59,8 @@ class AccountCommissionLine(models.Model):
         return quarter_start, quarter_end
 
     def _get_target_percentage_for_quarter(self, partner_id, quarter_start, quarter_end):
-        """Get the achievement percentage from crm.target for a partner in a specific quarter"""
+        """Get the achievement percentage from crm.target for a partner in a specific quarter
+        Uses read_group to calculate the same way as crm.target's grouped view"""
         _logger.info("=== Getting target percentage for quarter ===")
         _logger.info("Quarter: %s to %s", quarter_start, quarter_end)
         _logger.info("Partner ID: %s", partner_id)
@@ -75,35 +76,38 @@ class AccountCommissionLine(models.Model):
         if not user:
             return 0.0
 
-        # Get all crm.target records for this user in the quarter
-        targets = self.env['crm.target'].search([
+        # Use read_group to calculate the same way as crm.target's grouped view
+        # This ensures consistency with how the target view calculates percentages
+        domain = [
             ('user_id', '=', user.id),
             ('date', '>=', quarter_start),
             ('date', '<=', quarter_end)
-        ])
+        ]
 
-        _logger.info("Found %d targets for user %s in quarter %s - %s", len(targets), user.name, quarter_start, quarter_end)
-        for t in targets:
-            _logger.info("  Target ID=%s, date=%s, total_premium=%s, planned_target=%s",
-                        t.id, t.date, t.total_premium, t.planned_target)
+        # Use read_group with the same fields as the target model
+        grouped_data = self.env['crm.target'].read_group(
+            domain=domain,
+            fields=['total_premium:sum', 'planned_target:max', 'percentage'],
+            groupby=[],  # No groupby - aggregate all records in the quarter
+        )
 
-        if not targets:
-            _logger.info("No targets found for this quarter")
-            return 0.0
+        _logger.info("read_group result: %s", grouped_data)
 
-        # Calculate the aggregate percentage for the quarter
-        total_premium = sum(targets.mapped('total_premium'))
-        # Get planned_target - use max to get the correct value (it should be same across records)
-        planned_target = max(targets.mapped('planned_target')) if targets else 0.0
+        if grouped_data and grouped_data[0]:
+            data = grouped_data[0]
+            total_premium = data.get('total_premium', 0) or 0
+            planned_target = data.get('planned_target', 0) or 0
+            # Calculate percentage the same way as crm.target read_group
+            if planned_target and planned_target > 0:
+                percentage = total_premium / planned_target
+            else:
+                percentage = 0.0
 
-        _logger.info("Total premium: %s, Planned target: %s", total_premium, planned_target)
-
-        if planned_target and planned_target > 0:
-            percentage = total_premium / planned_target
-            _logger.info("Calculated percentage: %s (%s%%)", percentage, percentage * 100)
+            _logger.info("Total premium: %s, Planned target: %s, Percentage: %s (%s%%)",
+                        total_premium, planned_target, percentage, percentage * 100)
             return percentage
 
-        _logger.info("Planned target is 0, returning 0")
+        _logger.info("No data found for this quarter")
         return 0.0
 
     def _get_commission_from_matrix(self, percentage):
@@ -115,6 +119,8 @@ class AccountCommissionLine(models.Model):
         # This handles both cases: percentage as decimal (0.7) or as whole number (70)
         percentage_whole = percentage * 100 if percentage < 1 else percentage
 
+        _logger.info("Looking up matrix for percentage: %s (whole: %s)", percentage, percentage_whole)
+
         # Try with whole number first (e.g., 70 for 70%)
         matrix = self.env['crm.target.matrix'].search([
             ('from_percentage', '<=', percentage_whole),
@@ -122,6 +128,8 @@ class AccountCommissionLine(models.Model):
         ], limit=1)
 
         if matrix:
+            _logger.info("Found matrix entry: from=%s, to=%s, commission=%s",
+                        matrix.from_percentage, matrix.to_percentage, matrix.commission)
             return matrix.commission
 
         # Fallback: try with decimal (e.g., 0.70 for 70%)
@@ -131,7 +139,21 @@ class AccountCommissionLine(models.Model):
         ], limit=1)
 
         if matrix:
+            _logger.info("Found matrix entry (decimal): from=%s, to=%s, commission=%s",
+                        matrix.from_percentage, matrix.to_percentage, matrix.commission)
             return matrix.commission
+
+        # If percentage exceeds all ranges, use the highest commission rate
+        # (for cases where achievement > 100%)
+        if percentage_whole > 100 or percentage > 1:
+            _logger.info("Percentage %s exceeds 100%%, looking for highest matrix entry", percentage_whole)
+            highest_matrix = self.env['crm.target.matrix'].search([], order='to_percentage desc', limit=1)
+            if highest_matrix:
+                _logger.info("Using highest matrix entry: from=%s, to=%s, commission=%s",
+                            highest_matrix.from_percentage, highest_matrix.to_percentage, highest_matrix.commission)
+                return highest_matrix.commission
+
+        _logger.info("No matrix entry found for percentage %s", percentage_whole)
         return 0.0
 
     def _get_target_percentage_for_specific_quarter(self, partner_id, quarter_start, quarter_end):
