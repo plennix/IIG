@@ -55,23 +55,6 @@ class AccountCommissionLine(models.Model):
         quarter_end = (quarter_start + relativedelta(months=3)) - relativedelta(days=1)
         return quarter_start, quarter_end
 
-    def _get_previous_quarter_range(self, quarter_start, quarter_end):
-        """Get the start and end date of the previous quarter"""
-        if not quarter_start:
-            return None, None
-        prev_quarter_end = quarter_start - relativedelta(days=1)
-        prev_quarter_start = prev_quarter_end.replace(day=1) - relativedelta(months=2)
-        prev_quarter_start = prev_quarter_start.replace(day=1)
-        return prev_quarter_start, prev_quarter_end
-
-    def _get_next_quarter_range(self, quarter_start, quarter_end):
-        """Get the start and end date of the next quarter"""
-        if not quarter_end:
-            return None, None
-        next_quarter_start = quarter_end + relativedelta(days=1)
-        next_quarter_end = (next_quarter_start + relativedelta(months=3)) - relativedelta(days=1)
-        return next_quarter_start, next_quarter_end
-
     def _get_target_percentage_for_quarter(self, partner_id, quarter_start, quarter_end):
         """Get the achievement percentage from crm.target for a partner in a specific quarter"""
         if not partner_id or not quarter_start or not quarter_end:
@@ -109,59 +92,44 @@ class AccountCommissionLine(models.Model):
         if not percentage:
             return 0.0
 
+        # Convert percentage to whole number if it's a decimal (0.7 -> 70)
+        # This handles both cases: percentage as decimal (0.7) or as whole number (70)
+        percentage_whole = percentage * 100 if percentage < 1 else percentage
+
+        # Try with whole number first (e.g., 70 for 70%)
+        matrix = self.env['crm.target.matrix'].search([
+            ('from_percentage', '<=', percentage_whole),
+            ('to_percentage', '>=', percentage_whole)
+        ], limit=1)
+
+        if matrix:
+            return matrix.commission
+
+        # Fallback: try with decimal (e.g., 0.70 for 70%)
         matrix = self.env['crm.target.matrix'].search([
             ('from_percentage', '<=', percentage),
             ('to_percentage', '>=', percentage)
         ], limit=1)
         _logger.info(f"found matrix: {matrix}")
         
-        
 
         if matrix:
             return matrix.commission
         return 0.0
 
-    def _find_best_target_percentage(self, partner_id, reference_date, max_quarters_back=4, max_quarters_forward=2):
+    def _get_target_percentage_for_specific_quarter(self, partner_id, quarter_start, quarter_end):
         """
-        Find the best target percentage by searching current quarter first,
-        then previous quarters, then future quarters.
+        Get target percentage for a SPECIFIC quarter only.
         Returns (target_percentage, commission_from_matrix)
+        Does NOT fallback to other quarters.
         """
-        if not partner_id or not reference_date:
+        if not partner_id or not quarter_start or not quarter_end:
             return 0.0, 0.0
 
-        # Get current quarter range
-        quarter_start, quarter_end = self._get_quarter_date_range(reference_date)
-        if not quarter_start or not quarter_end:
-            return 0.0, 0.0
-
-        # Try current quarter first
         target_percentage = self._get_target_percentage_for_quarter(partner_id, quarter_start, quarter_end)
-        matrix_commission = self._get_commission_from_matrix(target_percentage)
-        if matrix_commission:
+        if target_percentage:
+            matrix_commission = self._get_commission_from_matrix(target_percentage)
             return target_percentage, matrix_commission
-
-        # Try previous quarters
-        prev_start, prev_end = quarter_start, quarter_end
-        for _ in range(max_quarters_back):
-            prev_start, prev_end = self._get_previous_quarter_range(prev_start, prev_end)
-            if not prev_start or not prev_end:
-                break
-            target_percentage = self._get_target_percentage_for_quarter(partner_id, prev_start, prev_end)
-            matrix_commission = self._get_commission_from_matrix(target_percentage)
-            if matrix_commission:
-                return target_percentage, matrix_commission
-
-        # Try future quarters (in case targets are set ahead)
-        next_start, next_end = quarter_start, quarter_end
-        for _ in range(max_quarters_forward):
-            next_start, next_end = self._get_next_quarter_range(next_start, next_end)
-            if not next_start or not next_end:
-                break
-            target_percentage = self._get_target_percentage_for_quarter(partner_id, next_start, next_end)
-            matrix_commission = self._get_commission_from_matrix(target_percentage)
-            if matrix_commission:
-                return target_percentage, matrix_commission
 
         return 0.0, 0.0
 
@@ -203,9 +171,13 @@ class AccountCommissionLine(models.Model):
                         # Get quarter date range from the first record's invoice_date
                         first_date = records[0].invoice_date
                         if first_date and partner_id:
-                            # Use the enhanced method that searches multiple quarters
-                            target_percentage, matrix_commission = self._find_best_target_percentage(
-                                partner_id, first_date
+                            # Get the quarter range for this specific invoice date
+                            quarter_start, quarter_end = self._get_quarter_date_range(first_date)
+
+                            # Get target percentage for THIS SPECIFIC quarter only
+                            # Each quarter should use its own achievement data
+                            target_percentage, matrix_commission = self._get_target_percentage_for_specific_quarter(
+                                partner_id, quarter_start, quarter_end
                             )
 
                             # commission_percentage = the commission % from matrix
