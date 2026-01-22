@@ -90,6 +90,9 @@ class AccountCommissionLine(models.Model):
 
     def _get_commission_from_matrix(self, percentage):
         """Get commission percentage from crm.target.matrix based on achievement percentage"""
+        import logging
+        _logger = logging.getLogger(__name__)
+        _logger.info(f"Finding commission for percentage: {percentage}, found matrix: {matrix}")
         if not percentage:
             return 0.0
 
@@ -97,6 +100,9 @@ class AccountCommissionLine(models.Model):
             ('from_percentage', '<=', percentage),
             ('to_percentage', '>=', percentage)
         ], limit=1)
+        _logger.info(f"found matrix: {matrix}")
+        
+        
 
         if matrix:
             return matrix.commission
