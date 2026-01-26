@@ -83,6 +83,8 @@
                                 <field name="choosing_one"/>
                                 <field name="quantity" column_invisible="1"/>
                                 <field name="product_uom_qty"/>
+                                <field name="proker"/>
+                                <field name="proker_percentage" widget="percentage"/>
                                 <field name="percentage" widget="percentage" groups="plnx_opportunity_type.group_crm_operation_percentage"/>
                                 <field name="total_premium"/>
                                 <field name="crm_id" column_invisible="1"/>
@@ -100,6 +102,8 @@
                                         <field name="choosing_one"/>
                                         <field name="quantity" invisible="1"/>
                                         <field name="product_uom_qty"/>
+                                        <field name="proker"/>
+                                        <field name="proker_percentage" widget="percentage" invisible="not proker"/>
                                         <field name="percentage" widget="percentage" groups="plnx_opportunity_type.group_crm_operation_percentage" />
                                         <field name="total_premium"/>
                                         <field name="crm_id" invisible="1"/>

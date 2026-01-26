@@ -129,7 +129,11 @@ class CrmLead(models.Model):
                 commission_lines = []
                 for line in self.crm_line_ids:
                     # Do NOT include non-existent keys like 'force_price' in values!
-                    unit_price = (line.total_premium * line.percentage) / line.quantity
+                    if line.proker:
+                        # Calculate proker percentage of total premium, then percentage of that
+                        unit_price = (line.total_premium * line.proker_percentage * line.percentage) / line.quantity
+                    else:
+                        unit_price = (line.total_premium * line.percentage) / line.quantity
                     order_lines.append(
                         (0, 0, {
                             'product_id': product.id,
@@ -171,6 +175,8 @@ class CRMLeadLine(models.Model):
     percentage = fields.Float(string="Percentage")
     total_premium = fields.Float(string="Total Premium")
     target_id = fields.Many2one('crm.target', string="Target", readonly=True)
+    proker = fields.Boolean(string="Proker")
+    proker_percentage = fields.Float(string="Proker Percentage")
 
     @api.depends('crm_id.recurring_plan')
     def _compute_quantity(self):
