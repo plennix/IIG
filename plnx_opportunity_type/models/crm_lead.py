@@ -144,7 +144,7 @@ class CrmLead(models.Model):
                 for line in self.commission_line_ids:
                     commission_lines.append(
                         (0, 0, {
-                            'partner_id': line.partner_id.id,
+                            'partner_id': line.proker_id.id if line.proker else line.partner_id.id,
                             'rate': line.rate,
                         })
                     )
@@ -176,6 +176,7 @@ class CRMLeadLine(models.Model):
     total_premium = fields.Float(string="Total Premium")
     target_id = fields.Many2one('crm.target', string="Target", readonly=True)
     proker = fields.Boolean(string="Proker")
+    proker_id = fields.Many2one('res.partner', string="Proker Name")
     proker_percentage = fields.Float(string="Proker Percentage")
 
     @api.depends('crm_id.recurring_plan')
