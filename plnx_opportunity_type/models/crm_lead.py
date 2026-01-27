@@ -144,13 +144,13 @@ class CrmLead(models.Model):
                 for line in self.commission_line_ids:
                     commission_lines.append(
                         (0, 0, {
-                            'partner_id': line.proker_id.id if line.proker else line.partner_id.id,
+                            'partner_id': line.partner_id.id,
                             'rate': line.rate,
                         })
                     )
                 # Overwrite default_order_line to ensure our price_unit is used
                 action['context'].update({'default_order_line': order_lines, 'disable_product_autofill': True, 'default_commission_line_ids': commission_lines})
-            action['context'].update({'default_partner_id': self.crm_line_ids[0].partner_id.id})
+            action['context'].update({'default_partner_id': self.crm_line_ids[0].proker_id.id if self.crm_line_ids[0].proker else self.crm_line_ids[0].partner_id.id})
         return action
 
 
