@@ -61,7 +61,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//group//group[2]" position="inside">
                     <field name="planned_target"/>
-                    <field name="total_commission" readonly="1"/>
+                    <field name="total_commission" readonly="1" invisible="1"/>
                 </xpath>
                 <div name="button_box" position="inside">
                     <button type="action"
