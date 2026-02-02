@@ -72,6 +72,41 @@ class CrmLead(models.Model):
     commission_line_ids = fields.One2many('crm.commission.line','crm_id' ,string='Commission', copy=True)
     expected_revenue = fields.Monetary('Expected Primary', currency_field='company_currency', tracking=True)
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        for rec in records:
+            if rec.user_id and rec.user_id.partner_id:
+                existing = rec.commission_line_ids.filtered(
+                    lambda l: l.partner_id == rec.user_id.partner_id
+                )
+                if not existing:
+                    self.env['crm.commission.line'].create({
+                        'partner_id': rec.user_id.partner_id.id,
+                        'rate': 0,
+                        'crm_id': rec.id,
+                    })
+        return records
+
+    def write(self, vals):
+        if 'user_id' in vals:
+            old_partners = {rec.id: rec.user_id.partner_id for rec in self}
+        res = super().write(vals)
+        if 'user_id' in vals:
+            for rec in self:
+                old_partner = old_partners.get(rec.id)
+                if old_partner:
+                    rec.commission_line_ids.filtered(
+                        lambda l: l.partner_id == old_partner
+                    ).unlink()
+                if rec.user_id and rec.user_id.partner_id:
+                    self.env['crm.commission.line'].create({
+                        'partner_id': rec.user_id.partner_id.id,
+                        'rate': 0,
+                        'crm_id': rec.id,
+                    })
+        return res
+
     @api.constrains('tax_id', 'national_id')
     def _check_unique_tax_national_id(self):
         for rec in self:
